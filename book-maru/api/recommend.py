@@ -1,12 +1,3 @@
-"""
-책마루 AI 사서 — AI 책 추천 API
-Vercel Serverless Function (Python)
-
-- 입력: { ageGroup, interest, mood }
-- 출력: { books: [ { title, author, reason }, ... ] }
-- API 키는 반드시 환경 변수(ANTHROPIC_API_KEY)에서 불러온다. 코드에 직접 쓰지 않는다.
-"""
-
 import json
 import os
 from http.server import BaseHTTPRequestHandler
@@ -27,7 +18,6 @@ class handler(BaseHTTPRequestHandler):
             interest = (payload.get("interest") or "").strip()
             mood = (payload.get("mood") or "").strip()
 
-            # 서버 쪽에서도 빈 입력값을 한 번 더 확인한다.
             if not age_group or not interest or not mood:
                 self._send_json(
                     400,
@@ -68,16 +58,18 @@ class handler(BaseHTTPRequestHandler):
                 block.text for block in message.content if block.type == "text"
             ).strip()
 
-            # 혹시 모델이 코드블록(```json ... ```)으로 감싸서 보내면 제거
             cleaned = raw_text.replace("```json", "").replace("```", "").strip()
 
             result = json.loads(cleaned)
             self._send_json(200, result)
 
+        except anthropic.APIError as e:
+            # Anthropic API 자체 오류 발생 시 처리
+            self._send_json(500, {"error": f"API 오류가 발생했습니다: {e.message}"})
         except json.JSONDecodeError:
             self._send_json(502, {"error": "AI 응답을 해석하지 못했습니다. 잠시 후 다시 시도해주세요."})
-        except Exception:
-            self._send_json(500, {"error": "잠시 후 다시 시도해주세요."})
+        except Exception as e:
+            self._send_json(500, {"error": f"서버 오류: {str(e)}"})
 
     def _send_json(self, status_code, data):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
