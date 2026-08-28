@@ -2,9 +2,10 @@ import json
 import os
 from http.server import BaseHTTPRequestHandler
 
-import anthropic
+from google import genai
+from google.genai import types
 
-MODEL_NAME = "claude-3-5-sonnet-20241022"
+MODEL_NAME = "gemini-2.5-flash"
 
 
 class handler(BaseHTTPRequestHandler):
@@ -25,12 +26,12 @@ class handler(BaseHTTPRequestHandler):
                 )
                 return
 
-            api_key = os.environ.get("ANTHROPIC_API_KEY")
+            api_key = os.environ.get("GEMINI_API_KEY")
             if not api_key:
                 self._send_json(500, {"error": "서버에 API 키가 설정되어 있지 않습니다."})
                 return
 
-            client = anthropic.Anthropic(api_key=api_key)
+            client = genai.Client(api_key=api_key)
 
             prompt = f"""당신은 동네 작은도서관의 다정한 AI 사서입니다.
 아래 방문자 정보를 참고해서 책 3권을 추천해주세요.
@@ -48,24 +49,20 @@ class handler(BaseHTTPRequestHandler):
   ]
 }}"""
 
-            message = client.messages.create(
+            response = client.models.generate_content(
                 model=MODEL_NAME,
-                max_tokens=800,
-                messages=[{"role": "user", "content": prompt}],
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
             )
 
-            raw_text = "".join(
-                block.text for block in message.content if block.type == "text"
-            ).strip()
-
+            raw_text = (response.text or "").strip()
             cleaned = raw_text.replace("```json", "").replace("```", "").strip()
 
             result = json.loads(cleaned)
             self._send_json(200, result)
 
-        except anthropic.APIError as e:
-            # Anthropic API 자체 오류 발생 시 처리
-            self._send_json(500, {"error": f"API 오류가 발생했습니다: {e.message}"})
         except json.JSONDecodeError:
             self._send_json(502, {"error": "AI 응답을 해석하지 못했습니다. 잠시 후 다시 시도해주세요."})
         except Exception as e:
