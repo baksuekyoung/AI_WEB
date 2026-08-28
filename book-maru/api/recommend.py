@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler
 
 import anthropic
 
-MODEL_NAME = "claude-sonnet-4-6"
+MODEL_NAME = "claude-3-5-sonnet-20241022"
 
 
 class handler(BaseHTTPRequestHandler):
