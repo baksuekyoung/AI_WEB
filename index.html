@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘 뭐 먹지? | AI 점심 메뉴 추천</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== 네비게이션 ===== -->
+  <nav class="navbar">
+    <div class="nav-logo">🍽️ 오늘 뭐 먹지?</div>
+    <ul class="nav-menu" id="nav-menu">
+      <li><a href="#hero">홈</a></li>
+      <li><a href="#recommend">AI 추천</a></li>
+      <li><a href="#about">서비스 소개</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <button class="nav-toggle" onclick="toggleMenu()">☰</button>
+  </nav>
+
+  <!-- ===== 섹션 1: Hero ===== -->
+  <section id="hero" class="hero-section">
+    <div class="hero-content">
+      <div class="hero-emoji">🍱</div>
+      <h1>오늘 점심,<br/>AI가 골라드릴게요</h1>
+      <p>기분 · 취향 · 인원수를 알려주면<br/>딱 맞는 메뉴를 추천해드립니다</p>
+      <a href="#recommend" class="btn-primary">지금 추천받기 →</a>
+    </div>
+  </section>
+
+  <!-- ===== 섹션 2: AI 추천 ===== -->
+  <section id="recommend" class="recommend-section">
+    <div class="section-inner">
+      <h2>🎲 AI 메뉴 추천</h2>
+      <p class="section-sub">아래 항목을 선택하고 추천받아보세요!</p>
+
+      <div class="form-card">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mood">😊 오늘 기분은?</label>
+            <select id="mood">
+              <option value="">-- 선택하세요 --</option>
+              <option value="피곤함">😪 피곤함</option>
+              <option value="상쾌함">😊 상쾌함</option>
+              <option value="스트레스받음">😤 스트레스받음</option>
+              <option value="너무 배고픔">🤤 너무 배고픔</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="category">🍜 선호 음식 종류</label>
+            <select id="category">
+              <option value="">-- 선택하세요 --</option>
+              <option value="한식">🍚 한식</option>
+              <option value="중식">🥢 중식</option>
+              <option value="일식">🍣 일식</option>
+              <option value="양식">🍝 양식</option>
+              <option value="상관없음">🤷 상관없음</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="people">👥 인원수</label>
+            <select id="people">
+              <option value="혼밥">🙋 혼밥</option>
+              <option value="2~3명">👫 2~3명</option>
+              <option value="4명 이상">👨‍👩‍👧‍👦 4명 이상</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="budget">💰 예산</label>
+            <select id="budget">
+              <option value="1만원 이하">💵 1만원 이하</option>
+              <option value="1~2만원">💴 1~2만원</option>
+              <option value="상관없음">🤑 상관없음</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 에러 메시지 -->
+        <div id="error-msg" class="error-msg hidden"></div>
+
+        <button id="recommend-btn" onclick="getRecommendation()">
+          🎲 AI 추천 받기
+        </button>
+
+      </div>
+
+      <!-- 결과 출력 영역 -->
+      <div id="result-box" class="result-box hidden">
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>AI가 열심히 고민 중이에요... ⏳</p>
+        </div>
+        <div id="result-content"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 섹션 3: 서비스 소개 ===== -->
+  <section id="about" class="about-section">
+    <div class="section-inner">
+      <h2>🌟 이런 분께 추천해요</h2>
+      <p class="section-sub">매일 반복되는 메뉴 고민, 이제 AI에게 맡기세요</p>
+      <div class="card-grid">
+        <div class="card">
+          <span class="card-icon">😵</span>
+          <h3>메뉴 고민하는 직장인</h3>
+          <p>10초 안에 오늘 점심 해결!</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">👫</span>
+          <h3>단체 메뉴 정하기 어려운 팀</h3>
+          <p>인원수에 맞는 메뉴 추천</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🎓</span>
+          <h3>예산이 빠듯한 대학생</h3>
+          <p>예산 범위 내 최고의 메뉴 추천</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 섹션 4: FAQ ===== -->
+  <section id="faq" class="faq-section">
+    <div class="section-inner">
+      <h2>❓ 자주 묻는 질문</h2>
+      <div class="faq-list">
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>추천 결과가 마음에 안 들면요?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">버튼을 다시 누르면 새로운 추천을 받을 수 있어요!</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>무료로 사용할 수 있나요?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">네! 완전 무료입니다. 마음껏 추천받아보세요 😊</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>어떤 AI를 사용하나요?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">OpenAI의 GPT 모델을 활용해 추천 결과를 생성합니다.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>제 정보가 저장되나요?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">아니요! 입력한 정보는 추천 생성 후 즉시 삭제됩니다.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 푸터 ===== -->
+  <footer class="footer">
+    <p>🍽️ 오늘 뭐 먹지? | Made with ❤️ + AI</p>
+    <p class="footer-sub">© 2025 WhatEat. All rights reserved.</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
