@@ -1,9 +1,10 @@
 import json
 import os
+import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler
-import google.generativeai as genai
 
-MODEL_NAME = "gemini-1.5-flash"
+MODEL_NAME = "gemini-2.5-flash"
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -28,9 +29,6 @@ class handler(BaseHTTPRequestHandler):
                 self._send_json(500, {"error": "서버에 API 키가 설정되어 있지 않습니다."})
                 return
 
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(MODEL_NAME)
-
             prompt = f"""당신은 동네 작은도서관의 다정한 AI 사서입니다.
 아래 방문자 정보를 참고해서 책 3권을 추천해주세요.
 
@@ -47,14 +45,34 @@ class handler(BaseHTTPRequestHandler):
   ]
 }}"""
 
-            response = model.generate_content(
-                prompt,
-                generation_config={"response_mime_type": "application/json"}
+            # Gemini REST API 직접 호출
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={api_key}"
+            
+            req_data = {
+                "contents": [{
+                    "parts": [{"text": prompt}]
+                }],
+                "generationConfig": {
+                    "responseMimeType": "application/json"
+                }
+            }
+            
+            headers = {"Content-Type": "application/json"}
+            req = urllib.request.Request(
+                url, 
+                data=json.dumps(req_data).encode("utf-8"), 
+                headers=headers, 
+                method="POST"
             )
 
-            raw_text = (response.text or "").strip()
-            
-            # 혹시 마크다운 ```json 문구가 포함되어 올 경우 제거
+            with urllib.request.urlopen(req) as response:
+                res_body = response.read().decode("utf-8")
+                res_json = json.loads(res_body)
+
+            # Gemini 응답 데이터 추출
+            raw_text = res_json["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+            # 마크다운 렌더링 문구 제거
             if raw_text.startswith("```"):
                 lines = raw_text.splitlines()
                 if lines[0].startswith("```"):
@@ -66,6 +84,9 @@ class handler(BaseHTTPRequestHandler):
             result = json.loads(raw_text)
             self._send_json(200, result)
 
+        except urllib.error.HTTPError as e:
+            err_msg = e.read().decode("utf-8")
+            self._send_json(500, {"error": f"Gemini API 오류: {err_msg}"})
         except json.JSONDecodeError:
             self._send_json(502, {"error": "AI 응답을 해석하지 못했습니다. 잠시 후 다시 시도해주세요."})
         except Exception as e:
