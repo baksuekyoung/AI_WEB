@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler
 from google import genai
 from google.genai import types
 
+# 안정적인 Gemini 2.5 Flash 모델 지정
 MODEL_NAME = "gemini-2.5-flash"
 
 
@@ -49,18 +50,28 @@ class handler(BaseHTTPRequestHandler):
   ]
 }}"""
 
+            # 자동 함수 호출 옵션을 끄고 순수 텍스트/JSON 생성 모드로 실행
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
+                    tools=[],  # AFC 경고 및 오류 방지
                 ),
             )
 
             raw_text = (response.text or "").strip()
-            cleaned = raw_text.replace("```json", "").replace("```", "").strip()
+            
+            # JSON 마크다운 태그 제거 처리
+            if raw_text.startswith("```"):
+                lines = raw_text.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                raw_text = "\n".join(lines).strip()
 
-            result = json.loads(cleaned)
+            result = json.loads(raw_text)
             self._send_json(200, result)
 
         except json.JSONDecodeError:
