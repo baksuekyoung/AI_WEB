@@ -15,7 +15,7 @@ https://whateat.vercel.app
 |------|------|
 | Frontend | HTML, CSS, JavaScript (Vanilla) |
 | Backend | Python (Vercel Serverless Functions) |
-| AI | OpenAI GPT-4o-mini |
+| AI | Google Gemini API (gemini-2.5-flash, 무료 등급) |
 | 배포 | Vercel + GitHub 연동 |
 
 ---
@@ -40,16 +40,19 @@ whateat/
 
 ## ⚙️ 환경 변수 설정
 
-Vercel 대시보드에서 아래 환경 변수를 추가하세요:
+1. [Google AI Studio](https://aistudio.google.com/app/apikey)에 접속해 구글 계정으로 로그인합니다.
+2. **Create API key** 버튼을 눌러 무료 API 키를 발급받습니다. (신용카드 등록 불필요)
+3. Vercel 대시보드에서 아래 환경 변수를 추가하세요:
 
 ```
-OPENAI_API_KEY = sk-xxxxxxxxxxxxxxxx
+GEMINI_API_KEY = AIzaSyxxxxxxxxxxxxxxxx
 ```
 
 **설정 경로:**
 Vercel 대시보드 → 프로젝트 선택 → Settings → Environment Variables
 
 > ⚠️ API 키는 절대 코드에 직접 넣지 마세요!
+> 무료 등급은 분당 요청 수 제한이 있으니, 트래픽이 많아지면 Google AI Studio에서 사용량을 확인하세요.
 
 ---
 
@@ -60,7 +63,7 @@ Vercel 대시보드 → 프로젝트 선택 → Settings → Environment Variabl
 npm install -g vercel
 
 # 2. 로컬 환경 변수 파일 생성
-echo "OPENAI_API_KEY=sk-your-key-here" > .env.local
+echo "GEMINI_API_KEY=your-gemini-key-here" > .env.local
 
 # 3. 로컬 서버 실행
 vercel dev
